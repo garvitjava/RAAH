@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Street Vendor Menu Generator</h2>
+        <form id="menuForm">
+            <label>Vendor Name:</label>
+            <input type="text" id="vendor_name" required>
+
+            <label>Cuisine Type:</label>
+            <input type="text" id="cuisine_type" required>
+
+            <label>Popular Dishes (comma separated):</label>
+            <input type="text" id="popular_dishes" required>
+
+            <label>Price Range:</label>
+            <input type="text" id="price_range" required>
+
+            <label>Add-ons (comma separated):</label>
+            <input type="text" id="add_ons">
+
+            <label>Dietary Preferences:</label>
+            <select id="dietary_preferences">
+                <option value="Veg">Veg</option>
+                <option value="Non-Veg">Non-Veg</option>
+                <option value="Vegan">Vegan</option>
+            </select>
+
+            <button type="submit">Generate Menu</button>
+        </form>
+
+        <div id="menuOutput"></div>
+    </div>
+
+    <script>
+        document.getElementById("menuForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const vendorName = document.getElementById("vendor_name").value.trim();
+            const cuisineType = document.getElementById("cuisine_type").value.trim();
+            const popularDishes = document.getElementById("popular_dishes").value.split(",").map(dish => dish.trim());
+            const priceRange = document.getElementById("price_range").value.trim();
+            const addOns = document.getElementById("add_ons").value.split(",").map(addon => addon.trim());
+            const dietaryPreferences = document.getElementById("dietary_preferences").value;
+
+            const requestData = {
+                vendor_name: vendorName,
+                cuisine_type: cuisineType,
+                popular_dishes: popularDishes,
+                price_range: priceRange,
+                add_ons: addOns,
+                dietary_preferences: dietaryPreferences
+            };
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/generate-menu", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (result.menu) {
+                    document.getElementById("menuOutput").innerHTML = `
+                        <h3>Generated Menu:</h3>
+                        <pre>${result.menu}</pre>
+                    `;
+                } else {
+                    document.getElementById("menuOutput").innerHTML = `<p style="color: red;">Error: ${result.error}</p>`;
+                }
+            } catch (error) {
+                document.getElementById("menuOutput").innerHTML = `<p style="color: red;">Error: Failed to connect to the server</p>`;
+                console.error("Fetch Error:", error);
+            }
+        });
+    </script>
+</body>
+</html>
